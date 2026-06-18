@@ -1,6 +1,5 @@
-// One project's main view. Decides flat (single list → items shown directly) vs
-// multi-list (sections + a collapsible Archived group), and owns project-level
-// actions (rename / share / delete) which are owner-only.
+// One project's main view. Shows all lists (active + archived) with consistent
+// list headers. The default list is always present and cannot be deleted or completed.
 
 import { useEffect, useState } from 'react'
 import type { List, Project } from '../types'
@@ -50,7 +49,6 @@ export function ProjectView({ project, isMobile, onBack, onProjectChanged, onPro
 
   const activeLists = lists.filter((l) => l.status === 'active')
   const archivedLists = lists.filter((l) => l.status === 'completed')
-  const isFlat = lists.length === 1
 
   // ---- project actions ----
   const renameProject = async (name: string) => {
@@ -124,13 +122,6 @@ export function ProjectView({ project, isMobile, onBack, onProjectChanged, onPro
           <div className="pad-center">
             <div className="spinner" />
           </div>
-        ) : isFlat ? (
-          <>
-            <ListView list={lists[0]} projectId={project.id} mode="flat" onListsChanged={refreshLists} />
-            <button className="add-list-btn" onClick={() => setModal('newlist')}>
-              <IconPlus size={18} /> New list
-            </button>
-          </>
         ) : (
           <>
             {activeLists.map((list) => (

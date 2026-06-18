@@ -10,6 +10,7 @@ const BACKEND = 'http://127.0.0.1:3001'
 export default defineConfig({
   server: {
     port: 5173,
+    historyApiFallback: true,
     proxy: {
       '/api': { target: BACKEND, changeOrigin: true },
       '/auth': { target: BACKEND, changeOrigin: true },

@@ -1,9 +1,12 @@
 // Main authenticated view: sidebar (projects) + the selected project.
 // Responsive: on mobile the sidebar and the project view are shown one at a time.
+// The selected project is reflected in the URL as /app/projects/:id so that
+// refreshing the page restores the same project.
 
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useRouter } from '../router'
+import { getProjectIdFromPath } from '../router'
 import { useMediaQuery } from '../useMediaQuery'
 import { useInstallPrompt } from '../useInstallPrompt'
 import { api } from '../api'
@@ -14,13 +17,13 @@ import { PromptModal } from '../components/PromptModal'
 
 export function AppPage() {
   const { user, logout } = useAuth()
-  const { navigate } = useRouter()
+  const { path, navigate } = useRouter()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const { canInstall, promptInstall } = useInstallPrompt()
 
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(() => getProjectIdFromPath(window.location.pathname))
   const [showNew, setShowNew] = useState(false)
 
   const loadProjects = () =>
@@ -42,7 +45,7 @@ export function AppPage() {
     }
   }, [])
 
-  // On desktop, default-select the first project.
+  // On desktop, default-select the first project only if no project is in the URL.
   useEffect(() => {
     if (!isMobile && selectedId === null && projects.length > 0) {
       setSelectedId(projects[0].id)
@@ -50,11 +53,36 @@ export function AppPage() {
   }, [isMobile, projects, selectedId])
 
   // If the selected project goes away (deleted), clear the selection.
+  // Only runs after loading is complete so a URL-restored id isn't cleared
+  // while the project list is still being fetched.
   useEffect(() => {
+    if (loading) return
     if (selectedId !== null && !projects.some((p) => p.id === selectedId)) {
       setSelectedId(null)
     }
-  }, [projects, selectedId])
+  }, [loading, projects, selectedId])
+
+  // Sync selectedId → URL.
+  useEffect(() => {
+    const urlId = getProjectIdFromPath(path)
+    if (selectedId !== null) {
+      if (urlId !== selectedId) {
+        navigate(`/app/projects/${selectedId}`)
+      }
+    } else {
+      if (path !== '/app') {
+        navigate('/app')
+      }
+    }
+  }, [selectedId])
+
+  // Sync URL → selectedId (handles back/forward navigation).
+  useEffect(() => {
+    const urlId = getProjectIdFromPath(path)
+    if (urlId !== selectedId) {
+      setSelectedId(urlId)
+    }
+  }, [path])
 
   const selectedProject = useMemo(
     () => projects.find((p) => p.id === selectedId) ?? null,

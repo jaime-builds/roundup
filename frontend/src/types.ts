@@ -24,6 +24,7 @@ export interface List {
   projectId: number
   name: string
   status: ListStatus
+  isDefault: boolean
   createdAt: string
   completedAt: string | null
 }

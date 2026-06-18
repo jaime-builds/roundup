@@ -1,6 +1,5 @@
-// Renders one list's items and its actions. Three modes:
-//   flat     — the project's only list; no list header, items shown directly
-//   active   — full header (rename inline, complete, clear-checked, delete)
+// Renders one list's items and its actions. Two modes:
+//   active   — full header (rename inline, complete, clear-checked, delete); default list hides complete/delete
 //   archived — read-only, faded; can be deleted (to trash)
 //
 // Live updates arrive over SSE; local mutations also update state optimistically.
@@ -11,9 +10,9 @@ import type { Item, List } from '../types'
 import { api } from '../api'
 import { useListStream } from '../useListStream'
 import { ItemRow } from './ItemRow'
-import { IconArchive, IconCheck, IconPlus, IconTrash } from '../components/icons'
+import { IconArchive, IconPlus, IconTrash } from '../components/icons'
 
-type Mode = 'flat' | 'active' | 'archived'
+type Mode = 'active' | 'archived'
 
 interface ListViewProps {
   list: List
@@ -50,7 +49,7 @@ export function ListView({ list, projectId, mode, onListsChanged }: ListViewProp
     api.items
       .forList(list.id)
       .then((rows) => active && setItems(sortItems(rows)))
-      .catch(() => active && setItems([]))
+      .catch(() => active && setLoading(false))
       .finally(() => active && setLoading(false))
     return () => {
       active = false
@@ -185,23 +184,6 @@ export function ListView({ list, projectId, mode, onListsChanged }: ListViewProp
     </form>
   )
 
-  // ---- flat ----
-  if (mode === 'flat') {
-    return (
-      <div className="list-block flat">
-        {checkedCount > 0 && (
-          <div className="flat-toolbar">
-            <button className="link-btn" onClick={clearChecked}>
-              <IconCheck size={16} /> Clear checked ({checkedCount})
-            </button>
-          </div>
-        )}
-        {addBar}
-        {itemList}
-      </div>
-    )
-  }
-
   // ---- archived ----
   if (mode === 'archived') {
     return (
@@ -239,7 +221,7 @@ export function ListView({ list, projectId, mode, onListsChanged }: ListViewProp
             }}
           />
         ) : (
-          <h3 className="list-name" onClick={() => setRenaming(true)} title="Rename list">
+          <h3 className="list-name" onClick={() => !readOnly && setRenaming(true)} title={readOnly ? undefined : 'Rename list'}>
             {list.name}
           </h3>
         )}
@@ -249,15 +231,19 @@ export function ListView({ list, projectId, mode, onListsChanged }: ListViewProp
               Clear checked
             </button>
           )}
-          <button className="icon-btn" onClick={completeList} aria-label="Complete list" title="Complete list">
-            <IconArchive size={18} />
-          </button>
-          <button className="icon-btn danger" onClick={deleteList} aria-label="Delete list" title="Delete list">
-            <IconTrash size={18} />
-          </button>
+          {!list.isDefault && !readOnly && (
+            <button className="icon-btn" onClick={completeList} aria-label="Complete list" title="Complete list">
+              <IconArchive size={18} />
+            </button>
+          )}
+          {!list.isDefault && (
+            <button className="icon-btn danger" onClick={deleteList} aria-label="Delete list" title="Delete list">
+              <IconTrash size={18} />
+            </button>
+          )}
         </div>
       </div>
-      {addBar}
+      {!readOnly && addBar}
       {itemList}
     </div>
   )

@@ -1,5 +1,5 @@
 // Minimal history-based router (no dependency). Tracks the current pathname and
-// exposes navigate(). Enough for the app's four views: / /app /trash /admin.
+// exposes navigate(). Enough for the app's views: / /app /app/projects/:id /trash /admin.
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
@@ -30,3 +30,11 @@ export function RouterProvider({ children }: { children: ReactNode }) {
 }
 
 export const useRouter = () => useContext(RouterContext)
+
+// Parse /app/projects/:id from the current path. Returns null if not on that route.
+export function getProjectIdFromPath(path: string): number | null {
+  const match = path.match(/^\/app\/projects\/(\d+)/)
+  if (!match) return null
+  const id = parseInt(match[1], 10)
+  return isNaN(id) ? null : id
+}
