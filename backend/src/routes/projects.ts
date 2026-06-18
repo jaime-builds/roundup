@@ -127,6 +127,7 @@ export async function projectRoutes(app: FastifyInstance) {
     }
     const list = getListById(listId)
     if (!list || list.project_id !== id) return reply.code(404).send({ error: 'list not found' })
+    if (list.is_default) return reply.code(400).send({ error: 'the default list cannot be completed' })
     return { list: toListDTO(completeList(listId)!) }
   })
 
@@ -140,7 +141,8 @@ export async function projectRoutes(app: FastifyInstance) {
     }
     const list = getListById(listId)
     if (!list || list.project_id !== id) return reply.code(404).send({ error: 'list not found' })
-    deleteListToTrash(list) // snapshot (list + items) goes to the project owner's trash
+    if (list.is_default) return reply.code(400).send({ error: 'the default list cannot be deleted' })
+    deleteListToTrash(list)
     return { ok: true }
   })
 }

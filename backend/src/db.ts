@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS lists (
   project_id   INTEGER REFERENCES projects(id),
   name         TEXT NOT NULL,
   status       TEXT NOT NULL DEFAULT 'active',
+  is_default   INTEGER NOT NULL DEFAULT 0,
   created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
   completed_at DATETIME
 );
@@ -72,3 +73,10 @@ export const db = new Database(config.dbPath)
 db.pragma('journal_mode = WAL')
 db.pragma('foreign_keys = ON')
 db.exec(SCHEMA)
+
+// Migrations — idempotent column additions for existing databases.
+try {
+  db.exec(`ALTER TABLE lists ADD COLUMN is_default INTEGER NOT NULL DEFAULT 0`)
+} catch {
+  // Column already exists — safe to ignore.
+}

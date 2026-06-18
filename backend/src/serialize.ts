@@ -28,6 +28,7 @@ export const toListDTO = (r: ListRow): ListDTO => ({
   projectId: r.project_id,
   name: r.name,
   status: r.status,
+  isDefault: !!r.is_default,
   createdAt: r.created_at,
   completedAt: r.completed_at,
 })

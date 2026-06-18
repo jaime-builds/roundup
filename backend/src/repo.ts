@@ -103,7 +103,7 @@ export function isProjectOwner(userId: number, projectId: number): boolean {
 export const createProject = db.transaction((name: string, ownerId: number): ProjectRow => {
   const info = db.prepare('INSERT INTO projects (name, owner_id) VALUES (?, ?)').run(name, ownerId)
   const projectId = Number(info.lastInsertRowid)
-  db.prepare("INSERT INTO lists (project_id, name, status) VALUES (?, ?, 'active')").run(projectId, name)
+  db.prepare("INSERT INTO lists (project_id, name, status, is_default) VALUES (?, ?, 'active', 1)").run(projectId, name)
   return getProjectById(projectId)!
 })
 

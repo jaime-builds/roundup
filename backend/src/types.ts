@@ -26,6 +26,7 @@ export interface ListRow {
   project_id: number
   name: string
   status: ListStatus
+  is_default: number // 0 | 1
   created_at: string
   completed_at: string | null
 }
@@ -80,6 +81,7 @@ export interface ListDTO {
   projectId: number
   name: string
   status: ListStatus
+  isDefault: boolean
   createdAt: string
   completedAt: string | null
 }
