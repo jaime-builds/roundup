@@ -25,6 +25,8 @@ export const config = {
   dbPath: resolveDbPath(),
   // Name of the HTTP-only cookie that carries the JWT.
   cookieName: 'roundup_token',
+  // Set to false when serving over HTTP (e.g. internal .lan). Defaults to true in prod.
+  cookieSecure: process.env.COOKIE_SECURE !== 'false' && isProd,
   // How long a JWT stays valid.
   jwtMaxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
   // How long trashed records live before they expire.
